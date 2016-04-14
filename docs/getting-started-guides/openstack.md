@@ -6,8 +6,7 @@
 
 ## Getting started with OpenStack
 
-Running Kubernetes with Openstack is an easy way to create Kubernetes cluster on the top of OpenStack. Heat OpenStack Orchestration
-engine describes the infrastructure for Kubernetes cluster. CentoOS images are used for Kubernetes host machines.
+This guide will take you through the steps of deploying Kubernetes to Openstack using `kube-up.sh`. The primary mechanisms for this are OpenStack Heat and the Kubernetes Saltstack. CentoOS images are used for Kubernetes host machines.
 
 ## Prerequisites
 
@@ -32,9 +31,11 @@ OpenStack CLI clients like python-PROJECTNAMEclient are going to be deprecated s
 More information you can find here: [deprecate-cli](https://specs.openstack.org/openstack/openstack-specs/specs/deprecate-cli.html)
 
 
-2. Set proper values in configuration files
+2. Set configuration values
 
-Project contains four files with configuration: config-default.sh, config-image.sh, openrc-default.sh and openrc-swift.sh
+This provider consumes configuration from environment variables or from the configuration files in `cluster/openstack`. If your environment has OpenStack environment variables set, the provider will consume these variables to both turn-up the cluster and also to fill in the cloud-provider information for the Kubernetes components.
+
+If you do not have your environment variables set, or do not want them consumed, modify the following files in `cluster/openstack`:
 
 **config-default.sh** sets all parameters needed for heat template.
 Additionally there is a flag CREATE_IMAGE which indicates if new image must be created.
@@ -43,8 +44,26 @@ If 'false' then image with IMAGE_ID will be used.
 **config-image.sh** sets parameters needed to create new OpenStack image if flag CREATE_IMAGE=true.
 Use CentOS 7 image for this purpose. You can get image here: [CentOS images](http://cloud.centos.org/centos/7/images/)
 
-**openrc-default.sh openrs-swift.sh** those files contain credential variables for OpenStack clients.
+**openrc-default.sh** those files contain credential variables for OpenStack clients.
 
+**openrc-swift.sh** Some OpenStack setups require the use of seperate swift credentials. Put those credentials in this file.
+
+3. Download a CentOS Image
+
+If you do not already have a CentOS image in OpenStack. Follow these instructions.
+
+```
+#FIXME this might be better as just a part of the config-image script.
+export IMAGE_PATH=...
+export IMAGE_MIRROR=...
+export IMAGE_FILE=...
+curl $IMAGE_MIRROR/$IMAGE_FILE -o $IMAGE_PATH
+....
+```
+
+4. Proxy Configuration (optional)
+
+If you are behind a proxy, and have your environment variables setup, set `export ENABLE_PROXY=true` to pass these variables into your Kubernetes deployment.
 
 ## Setup
 
