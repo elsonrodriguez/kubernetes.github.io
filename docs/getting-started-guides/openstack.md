@@ -15,24 +15,24 @@ This guide assumes you have a working OpenStack cluster.
 ## Pre-Requisites
 If you already have the OpenStack CLI tools installed and configured, you can move on to the [Starting a cluster](#starting-a-cluster) section.
 
-### Install OpenStack CLI tools
+#### Install OpenStack CLI tools
 
-```
+```sh
 sudo pip install -U --force 'python-heatclient>=0.9.0'
 sudo pip install -U --force 'python-swiftclient>=2.7.0'
 sudo pip install -U --force 'python-glanceclient>=1.2.0'
 sudo pip install -U --force 'python-novaclient>=3.2.0'
 ```
 
-### Configure Openstack CLI tools
+#### Configure Openstack CLI tools
 
 Please talk to your local OpenStack administrator for an `openrc.sh` file.
 
-Once that file is in your environment, this provider will consume the [correct variables](http://docs.openstack.org/user-guide/common/cli_set_environment_variables_using_openstack_rc.html) to talk to OpenStack and turn-up the Kubernetes cluster.
+Once that file is sourced into your environment, this provider will consume the [correct variables](http://docs.openstack.org/user-guide/common/cli_set_environment_variables_using_openstack_rc.html) to talk to OpenStack and turn-up the Kubernetes cluster.
 
 Otherwise, you must set the following appropriately:
 
-```
+```sh
 export OS_USERNAME=username
 export OS_PASSWORD=password
 export OS_TENANT_NAME=projectName
@@ -41,7 +41,7 @@ export OS_TENANT_ID=tenantIDString
 export OS_REGION_NAME=regionName
 ```
 
-### Set additional configuration values
+#### Set additional configuration values
 
 In addition, here are some commonly changed variables specific to this provider, with example values. Under most circumstances you will not have to change these.
 
@@ -58,7 +58,7 @@ export IMAGE_FILE=CentOS-7-x86_64-GenericCloud-1510.qcow2
 export SWIFT_SERVER_URL=http://192.168.123.100:8080
 export ENABLE_PROXY=false
 ```
-### Manually overriding configuration values
+#### Manually overriding configuration values
 
 If you do not have your environment variables set, or do not want them consumed, modify the variables in the following files under `cluster/openstack`:
 
@@ -76,7 +76,7 @@ Once you've installed the OpenStack CLI tools and have set your OpenStack enviro
 ```sh
 export KUBERNETES_PROVIDER=openstack; curl -sS https://get.k8s.io | bash
 ```
-Alternatively, you can download [Kubernetes release](https://github.com/kubernetes/kubernetes/releases) and extract the archive. To start your local cluster, open a shell and run:
+Alternatively, you can download [Kubernetes release](https://github.com/kubernetes/kubernetes/releases) and extract the archive. To start your cluster, open a shell and run:
 
 ```sh
 cd kubernetes # Or whichever path you have extracted the release to
@@ -92,7 +92,7 @@ KUBERNETES_PROVIDER=openstack ./cluster/kube-up.sh
 ```
 ## Inspect your cluster
 
-Once kube-up finished, your cluster should be running:
+Once kube-up is finished, your cluster should be running:
 
 ```console
 $ ./cluster/kubectl.sh get cs
@@ -168,23 +168,42 @@ $ ssh minion@IP_ADDRESS
 ## Cluster deployment customization examples
 You may find the need to modify environment variables to change the behaviour of kube-up. Here are some common scenarios:
 
-### Proxy configuration
+#### Proxy configuration
 If you are behind a proxy, and have your local environment variables setup, you can use these variables to setup your Kubernetes cluster:
 
 ```sh
 ENABLE_PROXY=true KUBERNETES_PROVIDER=openstack ./kube-up.sh
 ```
 
-### Setting different Swift URL
+#### Setting different Swift URL
 Some deployments differ from the default Swift URL:
 
 ```sh
  SWIFT_SERVER_URL="http://10.100.0.100:8080" KUBERNETES_PROVIDER=openstack ./kube-up.sh
 ```
 
-### Public network name.
+#### Public network name.
 Sometimes the name of the public network differs from the default `public`:
 
-```
+```sh
 EXTERNAL_NETWORK="network_external" KUBERNETES_PROVIDER=openstack ./kube-up.sh
 ```
+
+#### Spinning up additional clusters.
+You may want to spin up another cluster within your OpenStack project. Use the `$STACK_NAME` variable to accomplish this.
+
+```sh
+STACK_NAME=k8s-cluster-2 KUBERNETES_PROVIDER=openstack ./kube-up.sh
+```
+
+For more configuration examples, please browse the files mentioned in the [Configuration](#set-additional-configuration-values) section.
+
+
+## Tearing down your cluster
+
+To bring down your cluster, issue the following command:
+
+```sh
+KUBERNETES_PROVIDER=openstack ./kube-down.sh
+```
+If you have changed the default `$STACK_NAME`, you must specify the name. Note that this will not remove any Cinder volumes created by Kubernetes.
