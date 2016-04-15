@@ -6,121 +6,106 @@
 
 ## Getting started with OpenStack
 
-This guide will take you through the steps of deploying Kubernetes to Openstack using `kube-up.sh`. The primary mechanisms for this are OpenStack Heat and the Kubernetes Saltstack. CentoOS images are used for Kubernetes host machines.
+This guide will take you through the steps of deploying Kubernetes to Openstack using `kube-up.sh`. The primary mechanisms for this are [OpenStack Heat](https://wiki.openstack.org/wiki/Heat) and the [SaltStack](https://github.com/kubernetes/kubernetes/tree/master/cluster/saltbase) distributed with Kubernetes.
 
-## Prerequisites
+The default OS is CentOS 7, this has not been tested on other operating systems.
 
-1. Install latest version OpenStack clients
+This guide assumes you have a working OpenStack cluster.
 
-    heat >= 0.9.0
+## Pre-Requisites
+If you already have the OpenStack CLI tools installed and configured, you can move on to the [Starting a cluster](#starting-a-cluster) section.
 
-    swift >= 2.7.0
-
-    glance >= 1.2.0
-
-    nova >= 3.2.0
-
-    ```
-    sudo pip install -U --force python-heatclient
-    sudo pip install -U --force python-swiftclient
-    sudo pip install -U --force python-glanceclient
-    sudo pip install -U --force python-novaclient
-    ```
-#### Note:
-OpenStack CLI clients like python-PROJECTNAMEclient are going to be deprecated soon in favor of universal OpenStack CLI client.
-More information you can find here: [deprecate-cli](https://specs.openstack.org/openstack/openstack-specs/specs/deprecate-cli.html)
-
-
-2. Set configuration values
-
-This provider consumes configuration from environment variables or from the configuration files in `cluster/openstack`. If your environment has OpenStack environment variables set, the provider will consume these variables to both turn-up the cluster and also to fill in the cloud-provider information for the Kubernetes components.
-
-If you do not have your environment variables set, or do not want them consumed, modify the following files in `cluster/openstack`:
-
-**config-default.sh** sets all parameters needed for heat template.
-Additionally there is a flag CREATE_IMAGE which indicates if new image must be created.
-If 'false' then image with IMAGE_ID will be used.
-
-**config-image.sh** sets parameters needed to create new OpenStack image if flag CREATE_IMAGE=true.
-Use CentOS 7 image for this purpose. You can get image here: [CentOS images](http://cloud.centos.org/centos/7/images/)
-
-**openrc-default.sh** those files contain credential variables for OpenStack clients.
-
-**openrc-swift.sh** Some OpenStack setups require the use of seperate swift credentials. Put those credentials in this file.
-
-3. Download a CentOS Image
-
-If you do not already have a CentOS image in OpenStack. Follow these instructions.
+### Install OpenStack CLI tools
 
 ```
-#FIXME this might be better as just a part of the config-image script.
-export IMAGE_PATH=...
-export IMAGE_MIRROR=...
-export IMAGE_FILE=...
-curl $IMAGE_MIRROR/$IMAGE_FILE -o $IMAGE_PATH
-....
+sudo pip install -U --force 'python-heatclient>=0.9.0'
+sudo pip install -U --force 'python-swiftclient>=2.7.0'
+sudo pip install -U --force 'python-glanceclient>=1.2.0'
+sudo pip install -U --force 'python-novaclient>=3.2.0'
 ```
 
-4. Proxy Configuration (optional)
+### Configure Openstack CLI tools
 
-If you are behind a proxy, and have your environment variables setup, set `export ENABLE_PROXY=true` to pass these variables into your Kubernetes deployment.
+Please talk to your local OpenStack administrator for an `openrc.sh` file.
 
-## Setup
+Once that file is in your environment, this provider will consume the [correct variables](http://docs.openstack.org/user-guide/common/cli_set_environment_variables_using_openstack_rc.html) to talk to OpenStack and turn-up the Kubernetes cluster.
 
-Setting up a cluster:
+Otherwise, you must set the following appropriately:
+
+```
+export OS_USERNAME=username
+export OS_PASSWORD=password
+export OS_TENANT_NAME=projectName
+export OS_AUTH_URL=https://identityHost:portNumber/v2.0
+export OS_TENANT_ID=tenantIDString
+export OS_REGION_NAME=regionName
+```
+
+### Set additional configuration values
+
+In addition, here are some commonly changed variables specific to this provider, with example values. Under most circumstances you will not have to change these.
 
 ```sh
-export KUBERNETES_PROVIDER=openstack
-cd kubernetes
-make clean
-make quick-release
-./cluster/kube-up.sh
+export STACK_NAME=KubernetesStack
+export NUMBER_OF_MINIONS=3
+export MAX_NUMBER_OF_MINIONS=3
+export MASTER_FLAVOR=m1.small
+export MINION_FLAVOR=m1.small
+export EXTERNAL_NETWORK=public
+export DNS_SERVER=8.8.8.8
+export IMAGE_URL_PATH=http://cloud.centos.org/centos/7/images
+export IMAGE_FILE=CentOS-7-x86_64-GenericCloud-1510.qcow2
+export SWIFT_SERVER_URL=http://192.168.123.100:8080
+export ENABLE_PROXY=false
 ```
+### Manually overriding configuration values
 
+If you do not have your environment variables set, or do not want them consumed, modify the variables in the following files under `cluster/openstack`:
+
+- **config-default.sh** Sets all parameters needed for heat template.
+- **config-image.sh** Sets parameters needed to download and create new OpenStack image via glance.
+- **openrc-default.sh** Sets environment variables for communicating to OpenStack. These are consumed by the cli tools (heat, glance, swift, nova).
+- **openrc-swift.sh** Some OpenStack setups require the use of seperate swift credentials. Put those credentials in this file.
+
+Please see the contents of these files for documentation regarding each variable's function.
+
+## Starting a cluster
+
+Once you've installed the OpenStack CLI tools and have set your OpenStack environment variables, issue this command:
+
+```sh
+export KUBERNETES_PROVIDER=openstack; curl -sS https://get.k8s.io | bash
+```
 Alternatively, you can download [Kubernetes release](https://github.com/kubernetes/kubernetes/releases) and extract the archive. To start your local cluster, open a shell and run:
 
 ```sh
-cd kubernetes
+cd kubernetes # Or whichever path you have extracted the release to
+KUBERNETES_PROVIDER=openstack ./cluster/kube-up.sh
+```
+Or, if you are working from a checkout of the Kubernetes code base, and want to build/test from source:
 
-export KUBERNETES_PROVIDER=openstack
-./cluster/kube-up.sh
+```sh
+cd kubernetes # Or whatever your checkout root directory is called
+make clean
+make quick-release
+KUBERNETES_PROVIDER=openstack ./cluster/kube-up.sh
+```
+## Inspect your cluster
+
+Once kube-up finished, your cluster should be running:
+
+```console
+$ ./cluster/kubectl.sh get cs
 ```
 
-The `KUBERNETES_PROVIDER` environment variable tells all of the various cluster management scripts which variant to use.  If you forget to set this, the assumption is you are running on Google Compute Engine.
-
-## Interacting with your Kubernetes cluster with Openstack
-
-You can manage the nodes in your cluster with the Openstack WEB UI like Horizon or using heat or nova clients.
-
-To get all necessary information about cluster execute commands in main kubernetes directory:
-
-```
-. cluster/openstack/config-default.sh
-. cluster/openstack/openrc-default.sh
-heat stack-show $STACK_NAME
-```
-
-You will get cluster status and IP addresses for your master and minion nodes.
-
-## Authenticating with your master
-
-Because you added public key to nodes you can easily ssh to them.
-
-```
-$ ssh minion@IP_ADDRESS
-```
-
-## Running containers
-
-Your cluster is running, you can list the nodes in your cluster:
+You can list the nodes in your cluster:
 
 ```console
 $ ./cluster/kubectl.sh get nodes
 NAME                            LABELS                                                 STATUS    AGE
 kubernetesstack-node-tc9f2tfr   kubernetes.io/hostname=kubernetesstack-node-tc9f2tfr   Ready     21h
 ```
-
-Before starting a container there will be no pods, services and replication controllers.
+Being a new cluster, there will be no pods, services or replication controllers.
 
 ```console
 $ ./cluster/kubectl.sh get pods
@@ -133,4 +118,73 @@ $ ./cluster/kubectl.sh get replicationcontrollers
 CONTROLLER   CONTAINER(S)   IMAGE(S)   SELECTOR   REPLICAS
 ```
 
-Now you are ready to create you first service and controller.
+You are now ready to create Kubernetes objects.
+
+## Using your cluster
+
+```
+kubectl run nginx --image=nginx --generator=run-pod/v1
+kubectl port-forward nginx 8888:80
+```
+
+You should now see nginx on http://localhost:8888
+
+For more complex examples please see the [examples directory](https://github.com/kubernetes/kubernetes/tree/{{page.githubbranch}}/examples/)
+
+## Administering your cluster with Openstack
+
+You can manage the nodes in your cluster using the OpenStack CLI Tools.
+
+First, set your environment variables:
+
+```
+cd kubernetes
+. cluster/openstack/config-default.sh
+. cluster/openstack/openrc-default.sh
+```
+
+To get all information about your cluster, use heat:
+
+```
+heat stack-show $STACK_NAME
+```
+
+To see a list of nodes, use nova:
+
+```
+nova list --name=$STACK_NAME
+```
+
+See the [OpenStack CLI Reference](http://docs.openstack.org/cli-reference/) for more details.
+
+## SSHing to your nodes
+
+Your public key was added during the cluster turn-up, so you can easily ssh to them.
+
+```
+$ ssh minion@IP_ADDRESS
+```
+
+## Cluster deployment customization examples
+You may find the need to modify environment variables to change the behaviour of kube-up. Here are some common scenarios:
+
+### Proxy configuration
+If you are behind a proxy, and have your local environment variables setup, you can use these variables to setup your Kubernetes cluster:
+
+```sh
+ENABLE_PROXY=true KUBERNETES_PROVIDER=openstack ./kube-up.sh
+```
+
+### Setting different Swift URL
+Some deployments differ from the default Swift URL:
+
+```sh
+ SWIFT_SERVER_URL="http://10.100.0.100:8080" KUBERNETES_PROVIDER=openstack ./kube-up.sh
+```
+
+### Public network name.
+Sometimes the name of the public network differs from the default `public`:
+
+```
+EXTERNAL_NETWORK="network_external" KUBERNETES_PROVIDER=openstack ./kube-up.sh
+```
