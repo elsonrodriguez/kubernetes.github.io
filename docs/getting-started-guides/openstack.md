@@ -62,10 +62,10 @@ export ENABLE_PROXY=false
 
 If you do not have your environment variables set, or do not want them consumed, modify the variables in the following files under `cluster/openstack`:
 
-- **config-default.sh** Sets all parameters needed for heat template.
-- **config-image.sh** Sets parameters needed to download and create new OpenStack image via glance.
-- **openrc-default.sh** Sets environment variables for communicating to OpenStack. These are consumed by the cli tools (heat, glance, swift, nova).
-- **openrc-swift.sh** Some OpenStack setups require the use of seperate swift credentials. Put those credentials in this file.
+- **[config-default.sh](http://releases.k8s.io/{{page.githubbranch}}/cluster/openstack/config-default.sh)** Sets all parameters needed for heat template.
+- **[config-image.sh](http://releases.k8s.io/{{page.githubbranch}}/cluster/openstack/config-image.sh)** Sets parameters needed to download and create new OpenStack image via glance.
+- **[openrc-default.sh](http://releases.k8s.io/{{page.githubbranch}}/cluster/openstack/openrc-default.sh)** Sets environment variables for communicating to OpenStack. These are consumed by the cli tools (heat, glance, swift, nova).
+- **[openrc-swift.sh](http://releases.k8s.io/{{page.githubbranch}}/cluster/openstack/openrc-swift.sh)** Some OpenStack setups require the use of seperate swift credentials. Put those credentials in this file.
 
 Please see the contents of these files for documentation regarding each variable's function.
 
