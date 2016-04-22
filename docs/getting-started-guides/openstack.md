@@ -76,7 +76,7 @@ Once you've installed the OpenStack CLI tools and have set your OpenStack enviro
 ```sh
 export KUBERNETES_PROVIDER=openstack; curl -sS https://get.k8s.io | bash
 ```
-Alternatively, you can download [Kubernetes release](https://github.com/kubernetes/kubernetes/releases) and extract the archive. To start your cluster, open a shell and run:
+Alternatively, you can download a [Kubernetes release](https://github.com/kubernetes/kubernetes/releases) and extract the archive. To start your cluster, open a shell and run:
 
 ```sh
 cd kubernetes # Or whichever path you have extracted the release to
@@ -95,26 +95,26 @@ KUBERNETES_PROVIDER=openstack ./cluster/kube-up.sh
 Once kube-up is finished, your cluster should be running:
 
 ```console
-$ ./cluster/kubectl.sh get cs
+./cluster/kubectl.sh get cs
 ```
 
 You can list the nodes in your cluster:
 
 ```console
-$ ./cluster/kubectl.sh get nodes
+./cluster/kubectl.sh get nodes
 NAME                            LABELS                                                 STATUS    AGE
 kubernetesstack-node-tc9f2tfr   kubernetes.io/hostname=kubernetesstack-node-tc9f2tfr   Ready     21h
 ```
 Being a new cluster, there will be no pods, services or replication controllers.
 
 ```console
-$ ./cluster/kubectl.sh get pods
+./cluster/kubectl.sh get pods
 NAME        READY     STATUS    RESTARTS   AGE
 
-$ ./cluster/kubectl.sh get services
+./cluster/kubectl.sh get services
 NAME              CLUSTER_IP       EXTERNAL_IP       PORT(S)       SELECTOR               AGE
 
-$ ./cluster/kubectl.sh get replicationcontrollers
+./cluster/kubectl.sh get replicationcontrollers
 CONTROLLER   CONTAINER(S)   IMAGE(S)   SELECTOR   REPLICAS
 ```
 
@@ -123,8 +123,8 @@ You are now ready to create Kubernetes objects.
 ## Using your cluster
 
 ```
-kubectl run nginx --image=nginx --generator=run-pod/v1
-kubectl port-forward nginx 8888:80
+./cluster/kubectl.sh run nginx --image=nginx --generator=run-pod/v1
+./cluster/kubectl.sh port-forward nginx 8888:80
 ```
 
 You should now see nginx on http://localhost:8888
@@ -172,28 +172,28 @@ You may find the need to modify environment variables to change the behaviour of
 If you are behind a proxy, and have your local environment variables setup, you can use these variables to setup your Kubernetes cluster:
 
 ```sh
-ENABLE_PROXY=true KUBERNETES_PROVIDER=openstack ./kube-up.sh
+ENABLE_PROXY=true KUBERNETES_PROVIDER=openstack ./cluster/kube-up.sh
 ```
 
 #### Setting different Swift URL
 Some deployments differ from the default Swift URL:
 
 ```sh
- SWIFT_SERVER_URL="http://10.100.0.100:8080" KUBERNETES_PROVIDER=openstack ./kube-up.sh
+ SWIFT_SERVER_URL="http://10.100.0.100:8080" KUBERNETES_PROVIDER=openstack ./cluster/kube-up.sh
 ```
 
 #### Public network name.
 Sometimes the name of the public network differs from the default `public`:
 
 ```sh
-EXTERNAL_NETWORK="network_external" KUBERNETES_PROVIDER=openstack ./kube-up.sh
+EXTERNAL_NETWORK="network_external" KUBERNETES_PROVIDER=openstack ./cluster/kube-up.sh
 ```
 
 #### Spinning up additional clusters.
 You may want to spin up another cluster within your OpenStack project. Use the `$STACK_NAME` variable to accomplish this.
 
 ```sh
-STACK_NAME=k8s-cluster-2 KUBERNETES_PROVIDER=openstack ./kube-up.sh
+STACK_NAME=k8s-cluster-2 KUBERNETES_PROVIDER=openstack ./cluster/kube-up.sh
 ```
 
 For more configuration examples, please browse the files mentioned in the [Configuration](#set-additional-configuration-values) section.
@@ -204,6 +204,6 @@ For more configuration examples, please browse the files mentioned in the [Confi
 To bring down your cluster, issue the following command:
 
 ```sh
-KUBERNETES_PROVIDER=openstack ./kube-down.sh
+KUBERNETES_PROVIDER=openstack ./cluster/kube-down.sh
 ```
 If you have changed the default `$STACK_NAME`, you must specify the name. Note that this will not remove any Cinder volumes created by Kubernetes.
