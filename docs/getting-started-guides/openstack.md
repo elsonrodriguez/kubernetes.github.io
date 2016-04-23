@@ -28,7 +28,13 @@ sudo pip install -U --force 'python-novaclient==3.4.0'
 
 Please talk to your local OpenStack administrator for an `openrc.sh` file.
 
-Once that file is sourced into your environment, this provider will consume the [correct variables](http://docs.openstack.org/user-guide/common/cli_set_environment_variables_using_openstack_rc.html) to talk to OpenStack and turn-up the Kubernetes cluster.
+Once you have that file, source it into your environment by typing
+
+```sh
+. ~/path/to/openrc.sh
+```
+
+This provider will consume the [correct variables](http://docs.openstack.org/user-guide/common/cli_set_environment_variables_using_openstack_rc.html) to talk to OpenStack and turn-up the Kubernetes cluster.
 
 Otherwise, you must set the following appropriately:
 
@@ -96,40 +102,56 @@ Once kube-up is finished, your cluster should be running:
 
 ```console
 ./cluster/kubectl.sh get cs
+NAME                 STATUS    MESSAGE              ERROR
+controller-manager   Healthy   ok
+scheduler            Healthy   ok
+etcd-1               Healthy   {"health": "true"}
+etcd-0               Healthy   {"health": "true"}
 ```
 
-You can list the nodes in your cluster:
+You can also list the nodes in your cluster:
 
 ```console
 ./cluster/kubectl.sh get nodes
-NAME                            LABELS                                                 STATUS    AGE
-kubernetesstack-node-tc9f2tfr   kubernetes.io/hostname=kubernetesstack-node-tc9f2tfr   Ready     21h
+NAME                            STATUS    AGE
+kubernetesstack-node-ojszyjtr   Ready     42m
+kubernetesstack-node-tzotzcbp   Ready     46m
+kubernetesstack-node-uah8pkju   Ready     47m
 ```
-Being a new cluster, there will be no pods, services or replication controllers.
+Being a new cluster, there will be no pods or replication controllers in the default namespace:
 
 ```console
 ./cluster/kubectl.sh get pods
-NAME        READY     STATUS    RESTARTS   AGE
-
-./cluster/kubectl.sh get services
-NAME              CLUSTER_IP       EXTERNAL_IP       PORT(S)       SELECTOR               AGE
-
 ./cluster/kubectl.sh get replicationcontrollers
-CONTROLLER   CONTAINER(S)   IMAGE(S)   SELECTOR   REPLICAS
 ```
 
 You are now ready to create Kubernetes objects.
 
 ## Using your cluster
 
-```
+For a simple test, issue the following command:
+
+```sh
 ./cluster/kubectl.sh run nginx --image=nginx --generator=run-pod/v1
+```
+
+Soon, you should have a running nginx pod:
+
+```console
+./cluster/kubectl.sh get pods
+NAME      READY     STATUS    RESTARTS   AGE
+nginx     1/1       Running   0          5m
+```
+
+Once the nginx pod is running, use the port-forward command to set up a proxy from your machine to the pod.
+
+```sh
 ./cluster/kubectl.sh port-forward nginx 8888:80
 ```
 
-You should now see nginx on http://localhost:8888
+You should now see nginx on [http://localhost:8888]().
 
-For more complex examples please see the [examples directory](https://github.com/kubernetes/kubernetes/tree/{{page.githubbranch}}/examples/)
+For more complex examples please see the [examples directory](https://github.com/kubernetes/kubernetes/tree/{{page.githubbranch}}/examples/).
 
 ## Administering your cluster with Openstack
 
@@ -137,21 +159,20 @@ You can manage the nodes in your cluster using the OpenStack CLI Tools.
 
 First, set your environment variables:
 
-```
-cd kubernetes
+```sh
 . cluster/openstack/config-default.sh
 . cluster/openstack/openrc-default.sh
 ```
 
 To get all information about your cluster, use heat:
 
-```
+```sh
 heat stack-show $STACK_NAME
 ```
 
 To see a list of nodes, use nova:
 
-```
+```sh
 nova list --name=$STACK_NAME
 ```
 
@@ -159,10 +180,10 @@ See the [OpenStack CLI Reference](http://docs.openstack.org/cli-reference/) for 
 
 ## SSHing to your nodes
 
-Your public key was added during the cluster turn-up, so you can easily ssh to them.
+Your public key was added during the cluster turn-up, so you can easily ssh to them for troubleshooting purposes.
 
-```
-$ ssh minion@IP_ADDRESS
+```sh
+ssh minion@IP_ADDRESS
 ```
 
 ## Cluster deployment customization examples
