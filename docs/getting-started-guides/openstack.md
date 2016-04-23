@@ -18,10 +18,10 @@ If you already have the OpenStack CLI tools installed and configured, you can mo
 #### Install OpenStack CLI tools
 
 ```sh
-sudo pip install -U --force 'python-heatclient>=0.9.0'
-sudo pip install -U --force 'python-swiftclient>=2.7.0'
-sudo pip install -U --force 'python-glanceclient>=1.2.0'
-sudo pip install -U --force 'python-novaclient>=3.2.0'
+sudo pip install -U --force 'python-heatclient==1.1.0'
+sudo pip install -U --force 'python-swiftclient==3.0.0'
+sudo pip install -U --force 'python-glanceclient==2.0.0'
+sudo pip install -U --force 'python-novaclient==3.4.0'
 ```
 
 #### Configure Openstack CLI tools
