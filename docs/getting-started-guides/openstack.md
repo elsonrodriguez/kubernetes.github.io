@@ -68,10 +68,10 @@ export ENABLE_PROXY=false
 
 If you do not have your environment variables set, or do not want them consumed, modify the variables in the following files under `cluster/openstack`:
 
-- **[config-default.sh](http://releases.k8s.io/{{page.githubbranch}}/cluster/openstack/config-default.sh)** Sets all parameters needed for heat template.
-- **[config-image.sh](http://releases.k8s.io/{{page.githubbranch}}/cluster/openstack/config-image.sh)** Sets parameters needed to download and create new OpenStack image via glance.
-- **[openrc-default.sh](http://releases.k8s.io/{{page.githubbranch}}/cluster/openstack/openrc-default.sh)** Sets environment variables for communicating to OpenStack. These are consumed by the cli tools (heat, glance, swift, nova).
-- **[openrc-swift.sh](http://releases.k8s.io/{{page.githubbranch}}/cluster/openstack/openrc-swift.sh)** Some OpenStack setups require the use of seperate swift credentials. Put those credentials in this file.
+- **[config-default.sh](http://releases.k8s.io/{{page.githubbranch}}/cluster/openstack-heat/config-default.sh)** Sets all parameters needed for heat template.
+- **[config-image.sh](http://releases.k8s.io/{{page.githubbranch}}/cluster/openstack-heat/config-image.sh)** Sets parameters needed to download and create new OpenStack image via glance.
+- **[openrc-default.sh](http://releases.k8s.io/{{page.githubbranch}}/cluster/openstack-heat/openrc-default.sh)** Sets environment variables for communicating to OpenStack. These are consumed by the cli tools (heat, glance, swift, nova).
+- **[openrc-swift.sh](http://releases.k8s.io/{{page.githubbranch}}/cluster/openstack-heat/openrc-swift.sh)** Some OpenStack setups require the use of seperate swift credentials. Put those credentials in this file.
 
 Please see the contents of these files for documentation regarding each variable's function.
 
@@ -80,13 +80,13 @@ Please see the contents of these files for documentation regarding each variable
 Once you've installed the OpenStack CLI tools and have set your OpenStack environment variables, issue this command:
 
 ```sh
-export KUBERNETES_PROVIDER=openstack; curl -sS https://get.k8s.io | bash
+export KUBERNETES_PROVIDER=openstack-heat; curl -sS https://get.k8s.io | bash
 ```
 Alternatively, you can download a [Kubernetes release](https://github.com/kubernetes/kubernetes/releases) and extract the archive. To start your cluster, open a shell and run:
 
 ```sh
 cd kubernetes # Or whichever path you have extracted the release to
-KUBERNETES_PROVIDER=openstack ./cluster/kube-up.sh
+KUBERNETES_PROVIDER=openstack-heat ./cluster/kube-up.sh
 ```
 Or, if you are working from a checkout of the Kubernetes code base, and want to build/test from source:
 
@@ -94,7 +94,7 @@ Or, if you are working from a checkout of the Kubernetes code base, and want to 
 cd kubernetes # Or whatever your checkout root directory is called
 make clean
 make quick-release
-KUBERNETES_PROVIDER=openstack ./cluster/kube-up.sh
+KUBERNETES_PROVIDER=openstack-heat ./cluster/kube-up.sh
 ```
 ## Inspect your cluster
 
@@ -193,28 +193,28 @@ You may find the need to modify environment variables to change the behaviour of
 If you are behind a proxy, and have your local environment variables setup, you can use these variables to setup your Kubernetes cluster:
 
 ```sh
-ENABLE_PROXY=true KUBERNETES_PROVIDER=openstack ./cluster/kube-up.sh
+ENABLE_PROXY=true KUBERNETES_PROVIDER=openstack-heat ./cluster/kube-up.sh
 ```
 
 #### Setting different Swift URL
 Some deployments differ from the default Swift URL:
 
 ```sh
- SWIFT_SERVER_URL="http://10.100.0.100:8080" KUBERNETES_PROVIDER=openstack ./cluster/kube-up.sh
+ SWIFT_SERVER_URL="http://10.100.0.100:8080" KUBERNETES_PROVIDER=openstack-heat ./cluster/kube-up.sh
 ```
 
 #### Public network name.
 Sometimes the name of the public network differs from the default `public`:
 
 ```sh
-EXTERNAL_NETWORK="network_external" KUBERNETES_PROVIDER=openstack ./cluster/kube-up.sh
+EXTERNAL_NETWORK="network_external" KUBERNETES_PROVIDER=openstack-heat ./cluster/kube-up.sh
 ```
 
 #### Spinning up additional clusters.
 You may want to spin up another cluster within your OpenStack project. Use the `$STACK_NAME` variable to accomplish this.
 
 ```sh
-STACK_NAME=k8s-cluster-2 KUBERNETES_PROVIDER=openstack ./cluster/kube-up.sh
+STACK_NAME=k8s-cluster-2 KUBERNETES_PROVIDER=openstack-heat ./cluster/kube-up.sh
 ```
 
 For more configuration examples, please browse the files mentioned in the [Configuration](#set-additional-configuration-values) section.
@@ -225,6 +225,6 @@ For more configuration examples, please browse the files mentioned in the [Confi
 To bring down your cluster, issue the following command:
 
 ```sh
-KUBERNETES_PROVIDER=openstack ./cluster/kube-down.sh
+KUBERNETES_PROVIDER=openstack-heat ./cluster/kube-down.sh
 ```
 If you have changed the default `$STACK_NAME`, you must specify the name. Note that this will not remove any Cinder volumes created by Kubernetes.
